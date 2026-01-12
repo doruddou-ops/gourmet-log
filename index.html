@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>グルメ記録 - お店と写真の思い出</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Noto+Sans+JP:wght@300;400;700&display=swap"
+        rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#ff6b6b">
+    <link rel="apple-touch-icon" href="icon-192.png">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- サイドバー: 目次 -->
+        <aside class="sidebar" id="sidebar">
+            <header class="sidebar-header">
+                <h1>グルメ記録</h1>
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="お店を検索...">
+                </div>
+                <div class="data-actions">
+                    <button id="exportBtn" class="small-btn" title="データを保存（書き出し）">保存</button>
+                    <button id="importBtn" class="small-btn" title="データを読み込む">読込</button>
+                    <input type="file" id="importFile" accept=".json" style="display: none;">
+                </div>
+            </header>
+            <nav class="history-list-container">
+                <ul id="historyList" class="history-list">
+                    <!-- JSで動的に追加 -->
+                    <li class="empty-msg">まだ記録がありません</li>
+                </ul>
+            </nav>
+            <button id="addNewBtn" class="add-btn-main">+ 新しい記録を追加</button>
+        </aside>
+
+        <!-- メインコンテンツ: 詳細・フォーム -->
+        <main class="main-content">
+            <!-- 詳細表示モード -->
+            <section id="detailView" class="detail-view hidden">
+                <div class="detail-header">
+                    <button id="backBtn" class="icon-btn">←</button>
+                    <h2 id="detailTitle">店名</h2>
+                    <span id="detailDate" class="date-tag">2026/01/09</span>
+                    <div class="detail-actions">
+                        <button id="editBtn" class="edit-btn-action">編集</button>
+                        <button id="deleteBtn" class="delete-btn">削除</button>
+                    </div>
+                </div>
+                <div class="content-body">
+                    <div id="detailImageContainer" class="image-slider">
+                        <!-- JSで複数の画像が追加される -->
+                    </div>
+                    <p id="detailComment" class="comment-text">コメントがここに表示されます。</p>
+                </div>
+            </section>
+
+            <!-- フォーム入力モード -->
+            <section id="formView" class="form-view">
+                <h2 id="formTitle">新しい思い出を記録</h2>
+                <form id="recordForm" class="record-form">
+                    <div class="form-group">
+                        <label for="shopName">店名</label>
+                        <input type="text" id="shopName" required placeholder="お店の名前を入力">
+                    </div>
+                    <div class="form-group">
+                        <label for="visitDate">訪れた日</label>
+                        <input type="date" id="visitDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="shopPhoto">写真</label>
+                        <div class="file-drop-area" id="dropArea">
+                            <span class="fake-btn">ファイルを選択</span>
+                            <span class="file-msg">またはドラッグ＆ドロップ</span>
+                            <input type="file" id="shopPhoto" accept="image/*" multiple>
+                        </div>
+                        <div id="imagePreview" class="preview-grid hidden">
+                            <!-- JSでプレビューが追加される -->
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="comment">コメント</label>
+                        <textarea id="comment" rows="4" placeholder="料理の感想やお店の雰囲気を書きましょう"></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="submit-btn">保存する</button>
+                        <button type="button" id="cancelBtn" class="cancel-btn">キャンセル</button>
+                    </div>
+                </form>
+            </section>
+        </main>
+    </div>
+    <script src="script.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Service Worker registered'))
+                    .catch(err => console.error('Service Worker registration failed', err));
+            });
+        }
+    </script>
+</body>
+
+</html>
