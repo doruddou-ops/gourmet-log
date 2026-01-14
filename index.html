@@ -25,6 +25,17 @@
                 <div class="search-box">
                     <input type="text" id="searchInput" placeholder="お店を検索...">
                 </div>
+                <div class="sort-filter-controls">
+                    <select id="sortDropdown" class="sort-dropdown">
+                        <option value="newest">新しい順</option>
+                        <option value="oldest">古い順</option>
+                        <option value="rating-high">評価が高い順</option>
+                        <option value="rating-low">評価が低い順</option>
+                        <option value="name">名前順</option>
+                        <option value="favorite">お気に入り優先</option>
+                    </select>
+                    <button id="favFilterBtn" class="filter-btn" title="お気に入りのみ表示">♥</button>
+                </div>
                 <div class="data-actions">
                     <button id="exportBtn" class="small-btn" title="データを保存（書き出し）">保存</button>
                     <button id="importBtn" class="small-btn" title="データを読み込む">読込</button>
@@ -47,6 +58,8 @@
                 <div class="detail-header">
                     <button id="backBtn" class="icon-btn">←</button>
                     <h2 id="detailTitle">店名</h2>
+                    <span id="detailRating" class="rating-display"></span>
+                    <span id="detailFavorite" class="favorite-display"></span>
                     <span id="detailDate" class="date-tag">2026/01/09</span>
                     <div class="detail-actions">
                         <button id="editBtn" class="edit-btn-action">編集</button>
@@ -54,6 +67,7 @@
                     </div>
                 </div>
                 <div class="content-body">
+                    <div id="detailTags" class="detail-tags"></div>
                     <div id="detailImageContainer" class="image-slider">
                         <!-- JSで複数の画像が追加される -->
                     </div>
@@ -72,6 +86,20 @@
                     <div class="form-group">
                         <label for="visitDate">訪れた日</label>
                         <input type="date" id="visitDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label>評価</label>
+                        <div id="starRatingInput" class="star-rating-input"></div>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="favoriteCheckbox" class="favorite-checkbox">
+                            お気に入り ♥
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label for="tagsInput">タグ（カンマ区切り）</label>
+                        <input type="text" id="tagsInput" placeholder="例: 和食, デート, ランチ">
                     </div>
                     <div class="form-group">
                         <label for="shopPhoto">写真</label>

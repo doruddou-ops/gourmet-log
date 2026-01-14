@@ -391,6 +391,135 @@ body {
     font-style: italic;
 }
 
+/* 新機能のスタイル */
+/* 並び替えとフィルターコントロール */
+.sort-filter-controls {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.sort-dropdown {
+    flex: 1;
+    padding: 0.5rem;
+    background: var(--card-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    color: white;
+    font-size: 0.85rem;
+    outline: none;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.sort-dropdown:hover {
+    border-color: var(--primary-color);
+}
+
+.filter-btn {
+    padding: 0.5rem 0.8rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    color: var(--text-dim);
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 1.2rem;
+}
+
+.filter-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.filter-btn.active {
+    background: rgba(255, 107, 107, 0.2);
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+}
+
+/* 星評価 */
+.star-rating-input {
+    display: flex;
+    gap: 0.3rem;
+    font-size: 2rem;
+}
+
+.star {
+    cursor: pointer;
+    color: #fbbf24;
+    transition: var(--transition);
+    user-select: none;
+}
+
+.star:hover {
+    transform: scale(1.2);
+}
+
+.rating-stars {
+    color: #fbbf24;
+    font-size: 0.85rem;
+}
+
+.rating-display {
+    color: #fbbf24;
+    font-size: 1.2rem;
+    margin-left: 0.5rem;
+}
+
+/* お気に入り */
+.favorite-checkbox {
+    margin-right: 0.5rem;
+    cursor: pointer;
+}
+
+.favorite-icon {
+    color: #ff6b6b;
+    font-size: 1rem;
+    margin-left: 0.5rem;
+}
+
+.favorite-display {
+    color: #ff6b6b;
+    font-size: 1.5rem;
+    margin-left: 0.5rem;
+}
+
+/* タグ */
+.tag-badge {
+    display: inline-block;
+    padding: 0.25rem 0.6rem;
+    background: rgba(139, 92, 246, 0.2);
+    border: 1px solid rgba(139, 92, 246, 0.4);
+    border-radius: 12px;
+    font-size: 0.75rem;
+    color: #c4b5fd;
+    margin-right: 0.4rem;
+    margin-bottom: 0.4rem;
+}
+
+.detail-tags {
+    margin-bottom: 1rem;
+}
+
+.item-tags {
+    margin-top: 0.4rem;
+}
+
+/* 履歴アイテムの構造 */
+.item-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.3rem;
+}
+
+.item-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+}
+
 /* モバイル対応 (レスポンシブ) */
 @media (max-width: 768px) {
     .app-container {

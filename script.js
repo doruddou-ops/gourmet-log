@@ -1,11 +1,14 @@
 // IndexedDB 設定
 const DB_NAME = 'GourmetLogDB';
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 const STORE_NAME = 'records';
 let db;
 let currentRecordId = null; // 現在表示中のレコードID
 let isEditMode = false;      // 編集モードフラグ
 let currentImages = [];      // フォームで現在扱っている全ての画像Base64配列
+let currentRating = 0;       // 現在の評価（0-5）
+let currentSortOption = 'newest'; // 現在の並び替えオプション
+let showFavoritesOnly = false;    // お気に入りのみ表示フラグ
 
 // DOM 要素
 const historyList = document.getElementById('historyList');
@@ -26,6 +29,11 @@ const importFile = document.getElementById('importFile');
 const formTitle = document.getElementById('formTitle');
 const submitBtn = recordForm.querySelector('.submit-btn');
 const sidebar = document.getElementById('sidebar');
+const sortDropdown = document.getElementById('sortDropdown');
+const favFilterBtn = document.getElementById('favFilterBtn');
+const starRatingInput = document.getElementById('starRatingInput');
+const favoriteCheckbox = document.getElementById('favoriteCheckbox');
+const tagsInput = document.getElementById('tagsInput');
 
 // 初期化
 document.addEventListener('DOMContentLoaded', () => {
@@ -64,6 +72,23 @@ function setupEventListeners() {
     exportBtn.addEventListener('click', exportData);
     importBtn.addEventListener('click', () => importFile.click());
     importFile.addEventListener('change', importData);
+
+    // 新機能のイベントリスナー
+    if (sortDropdown) {
+        sortDropdown.addEventListener('change', (e) => {
+            currentSortOption = e.target.value;
+            loadHistory(searchInput.value);
+        });
+    }
+    if (favFilterBtn) {
+        favFilterBtn.addEventListener('click', () => {
+            showFavoritesOnly = !showFavoritesOnly;
+            favFilterBtn.classList.toggle('active', showFavoritesOnly);
+            loadHistory(searchInput.value);
+        });
+    }
+
+    // 星評価のイベントリスナーは動的に追加（renderStarRating関数内）
 }
 
 async function showForm(isEdit = false) {
@@ -81,14 +106,22 @@ async function showForm(isEdit = false) {
             document.getElementById('visitDate').value = record.visitDate;
             document.getElementById('comment').value = record.comment;
             currentImages = record.images || (record.image ? [record.image] : []);
+            currentRating = record.rating || 0;
+            if (favoriteCheckbox) favoriteCheckbox.checked = record.favorite || false;
+            if (tagsInput) tagsInput.value = (record.tags || []).join(', ');
             renderPreviewList();
+            renderStarRating(currentRating);
         }
     } else {
         formTitle.textContent = '新しい思い出を記録';
         submitBtn.textContent = '保存する';
         recordForm.reset();
         currentImages = [];
+        currentRating = 0;
+        if (favoriteCheckbox) favoriteCheckbox.checked = false;
+        if (tagsInput) tagsInput.value = '';
         renderPreviewList();
+        renderStarRating(0);
         currentRecordId = null;
     }
     updateHighlights();
@@ -165,11 +198,17 @@ function removeImage(index) {
 async function handleFormSubmit(e) {
     e.preventDefault();
 
+    const tagsValue = tagsInput ? tagsInput.value.trim() : '';
+    const tagsArray = tagsValue ? tagsValue.split(',').map(t => t.trim()).filter(t => t) : [];
+
     const recordData = {
         shopName: document.getElementById('shopName').value,
         visitDate: document.getElementById('visitDate').value,
         comment: document.getElementById('comment').value,
         images: currentImages,
+        rating: currentRating,
+        favorite: favoriteCheckbox ? favoriteCheckbox.checked : false,
+        tags: tagsArray,
         createdAt: isEditMode ? undefined : new Date().getTime()
     };
 
@@ -205,7 +244,35 @@ function loadHistory(filter = '') {
     const store = transaction.objectStore(STORE_NAME);
     const request = store.getAll();
     request.onsuccess = (event) => {
-        const records = event.target.result.sort((a, b) => b.createdAt - a.createdAt);
+        let records = event.target.result;
+
+        // お気に入りフィルター
+        if (showFavoritesOnly) {
+            records = records.filter(r => r.favorite);
+        }
+
+        // 並び替え
+        switch (currentSortOption) {
+            case 'newest':
+                records.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                break;
+            case 'oldest':
+                records.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+                break;
+            case 'rating-high':
+                records.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+                break;
+            case 'rating-low':
+                records.sort((a, b) => (a.rating || 0) - (b.rating || 0));
+                break;
+            case 'name':
+                records.sort((a, b) => (a.shopName || '').localeCompare(b.shopName || '', 'ja'));
+                break;
+            case 'favorite':
+                records.sort((a, b) => (b.favorite ? 1 : 0) - (a.favorite ? 1 : 0));
+                break;
+        }
+
         renderHistoryList(records, filter);
     };
 }
@@ -221,7 +288,25 @@ function renderHistoryList(records, filter) {
         const li = document.createElement('li');
         li.className = 'history-item';
         li.dataset.id = record.id;
-        li.innerHTML = `<span class="shop-name">${escapeHTML(record.shopName)}</span><span class="visit-date">${escapeHTML(record.visitDate)}</span>`;
+
+        const rating = record.rating || 0;
+        const favorite = record.favorite ? '♥' : '';
+        const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
+        const tagsHtml = (record.tags && record.tags.length > 0)
+            ? `<div class="item-tags">${record.tags.map(tag => `<span class="tag-badge">${escapeHTML(tag)}</span>`).join('')}</div>`
+            : '';
+
+        li.innerHTML = `
+            <div class="item-header">
+                <span class="shop-name">${escapeHTML(record.shopName)}</span>
+                ${favorite ? '<span class="favorite-icon">♥</span>' : ''}
+            </div>
+            <div class="item-meta">
+                <span class="visit-date">${escapeHTML(record.visitDate)}</span>
+                ${rating > 0 ? `<span class="rating-stars">${stars}</span>` : ''}
+            </div>
+            ${tagsHtml}
+        `;
         li.addEventListener('click', () => showDetail(record));
         historyList.appendChild(li);
     });
@@ -236,6 +321,32 @@ function showDetail(record) {
     document.getElementById('detailTitle').textContent = record.shopName;
     document.getElementById('detailDate').textContent = record.visitDate;
     document.getElementById('detailComment').textContent = record.comment;
+
+    // 評価とお気に入りの表示
+    const detailRating = document.getElementById('detailRating');
+    const detailFavorite = document.getElementById('detailFavorite');
+    const detailTags = document.getElementById('detailTags');
+
+    if (detailRating) {
+        const rating = record.rating || 0;
+        const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
+        detailRating.textContent = rating > 0 ? stars : '';
+    }
+
+    if (detailFavorite) {
+        detailFavorite.textContent = record.favorite ? '♥' : '';
+        detailFavorite.style.display = record.favorite ? 'inline' : 'none';
+    }
+
+    if (detailTags) {
+        if (record.tags && record.tags.length > 0) {
+            detailTags.innerHTML = record.tags.map(tag => `<span class="tag-badge">${escapeHTML(tag)}</span>`).join('');
+            detailTags.style.display = 'block';
+        } else {
+            detailTags.style.display = 'none';
+        }
+    }
+
     const slider = document.getElementById('detailImageContainer');
     slider.innerHTML = '';
     const allImages = record.images || (record.image ? [record.image] : []);
@@ -296,6 +407,23 @@ function importData(e) {
         } catch (err) { alert('失敗'); }
     };
     reader.readAsText(file);
+}
+
+// 星評価のレンダリング
+function renderStarRating(rating) {
+    if (!starRatingInput) return;
+    starRatingInput.innerHTML = '';
+    for (let i = 1; i <= 5; i++) {
+        const star = document.createElement('span');
+        star.className = 'star';
+        star.textContent = i <= rating ? '★' : '☆';
+        star.dataset.rating = i;
+        star.addEventListener('click', () => {
+            currentRating = i;
+            renderStarRating(i);
+        });
+        starRatingInput.appendChild(star);
+    }
 }
 
 function escapeHTML(str) {
